@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div>
+    <form>
+        {% if not disable_follow_botton %}
+            {% if following %}
+                <input type="submit" value="フォローをやめる">
+            {% else %}
+                <input type="submit" value="フォローする">
+            {% endif %}
+        {% endif %}
+    </form>
+</div>
+<div>
+    <p>{{ profile_user.profile }}</p>
+    <a href="{{ profile_user.url }}">URL</a>
+    <p>{{ profile_user.birth_date }}</p>
+</div>
+<div>
+    <table border="1">
+        <p>ツイート一覧</p>
+            <tr>
+                <th>user</th>
+                <th>content</th>
+                <th>created_at</th>
+            </tr>
+            {% for tweet in tweets %}
+                <tr>
+                    <td>{{ tweet.user.user_name }}</td>
+                    <td>{{ tweet.content }}</td>
+                    <td>{{ tweet.created_at }}</td>
+                </tr>
+            {% endfor %}
+</div>
+{% endblock %}
