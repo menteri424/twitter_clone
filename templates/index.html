@@ -1,0 +1,25 @@
+{% include 'component/header.html' %}
+<h1>ようこそ{{ user_name }}さん</h1>
+<p>ツイートする</p>
+<form action="{% url 'tweet' %}" method="POST">
+    {% csrf_token %}
+    <input type="text" name="content">
+    <input type="submit">
+</form>
+<table border="1">
+<p>ツイート一覧</p>
+    <tr>
+        <th>user</th>
+        <th>content</th>
+        <th>created_at</th>
+    </tr>
+    {% for tweet in tweets %}
+        <tr>
+            <td>{{ tweet.user.user_name }}</td>
+            <td>{{ tweet.content }}</td>
+            <td>{{ tweet.created_at }}</td>
+        </tr>
+    {% endfor %}
+</table>
+
+{% include 'component/footer.html' %}

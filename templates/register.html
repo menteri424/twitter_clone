@@ -1,0 +1,11 @@
+{% include 'component/header.html' %}
+<form id="register_form" method="POST">
+    {% csrf_token %}
+    {% for ele in form %}
+        <div>
+            {{ ele }}
+        </div>
+    {% endfor %}
+    <input type="submit" />
+</form>
+{% include 'component/footer.html' %}
