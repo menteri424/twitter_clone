@@ -27,8 +27,8 @@ class User(models.Model):
 
 
 class Follower(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    followed_by = models.OneToOneField(
+    followee = models.ForeignKey(User, on_delete=models.CASCADE)
+    follower = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name="followed_by"
     )
 

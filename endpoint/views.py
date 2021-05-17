@@ -45,7 +45,7 @@ class IndexView(generic.TemplateView):
         context = super().get_context_data(**kwargs)
         user_name = self.request.session["USER_LOGGED_IN_SESSION"]
 
-        follower = Follower.objects.filter(user__user_name=user_name).values_list(
+        follower = Follower.objects.filter(followee__user_name=user_name).values_list(
             "followed_by"
         )
         tweets = Tweet.objects.filter(Q(user__in=follower) | Q(user__user_name=user_name))
