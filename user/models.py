@@ -26,13 +26,17 @@ class User(models.Model):
         return cls.objects.filter(user_name=user_name, password=password).exists()
 
 
-class Follower(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    followed_by = models.OneToOneField(
-        User, on_delete=models.CASCADE, related_name="followed_by"
+class UserFollowingRelation(models.Model):
+    followee = models.ForeignKey(User, on_delete=models.CASCADE, related_name="followee")
+    follower = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="follower"
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = "follower"
+        constraints = [
+            # 重複したフォロー情報はキー違反とする
+            models.UniqueConstraint(fields=["followee", "follower"], name="duplicated_following"),
+        ]
