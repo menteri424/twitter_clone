@@ -26,7 +26,7 @@ class User(models.Model):
         return cls.objects.filter(user_name=user_name, password=password).exists()
 
 
-class Follower(models.Model):
+class UserFollowingRelation(models.Model):
     followee = models.ForeignKey(User, on_delete=models.CASCADE)
     follower = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name="followed_by"
