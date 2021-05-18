@@ -1,4 +1,6 @@
-{% include 'component/header.html' %}
+{% extends "base.html" %}
+
+{% block content %}
 <h1>ようこそ{{ user_name }}さん</h1>
 <p>ツイートする</p>
 <form action="{% url 'tweet' %}" method="POST">
@@ -21,5 +23,4 @@
         </tr>
     {% endfor %}
 </table>
-
-{% include 'component/footer.html' %}
+{% endblock %}

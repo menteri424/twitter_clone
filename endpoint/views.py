@@ -6,7 +6,7 @@ from django.http import request, HttpResponseNotAllowed
 from django.shortcuts import render, redirect
 from django.urls import reverse, reverse_lazy
 from django.db.models import Prefetch, Q
-from user.models import User, Follower
+from user.models import User, UserFollowingRelation
 from tweet.models import Tweet
 
 def login(request):
@@ -45,7 +45,7 @@ class IndexView(generic.TemplateView):
         context = super().get_context_data(**kwargs)
         user_name = self.request.session["USER_LOGGED_IN_SESSION"]
 
-        follower = Follower.objects.filter(user__user_name=user_name).values_list(
+        follower = UserFollowingRelation.objects.filter(followee__user_name=user_name).values_list(
             "followed_by"
         )
         tweets = Tweet.objects.filter(Q(user__in=follower) | Q(user__user_name=user_name))

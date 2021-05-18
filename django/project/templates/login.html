@@ -1,4 +1,6 @@
-{% include 'component/header.html' %}
+{% extends "base.html" %}
+
+{% block content %}
 <form id="login_form" method="POST">
     {% csrf_token %}
     <div>
@@ -15,4 +17,4 @@
     </div>
     <input type="submit" />
 </form>
-{% include 'component/footer.html' %}
+{% endblock %}
