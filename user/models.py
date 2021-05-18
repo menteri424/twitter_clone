@@ -27,7 +27,7 @@ class User(models.Model):
 
 
 class UserFollowingRelation(models.Model):
-    followee = models.ForeignKey(User, on_delete=models.CASCADE)
+    followees = models.ManyToManyField(User)
     follower = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name="followed_by"
     )
