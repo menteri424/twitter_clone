@@ -7,7 +7,7 @@ from django.http import request, HttpResponseNotAllowed
 from django.shortcuts import render, redirect
 from django.urls import reverse, reverse_lazy
 from django.db.models import Prefetch, Q
-from user.models import User, Follower
+from user.models import User, UserFollowingRelation
 from tweet.models import Tweet
 
 
@@ -49,9 +49,9 @@ class IndexView(generic.TemplateView):
         context = super().get_context_data(**kwargs)
         user_name_logged_in_session = self.request.session["USER_LOGGED_IN_SESSION"]
 
-        follower = Follower.objects.filter(
-            user__user_name=user_name_logged_in_session
-        ).values_list("followed_by")
+        follower = UserFollowingRelation.objects.filter(
+            follower__user_name=user_name_logged_in_session
+        ).values_list("follower")
         tweets = Tweet.objects.filter(
             Q(user__in=follower) | Q(user__user_name=user_name_logged_in_session)
         )
@@ -98,8 +98,8 @@ class ProfileView(generic.base.ContextMixin, generic.View):
         tweets = Tweet.objects.filter(user=profile_user)
 
         # 表示しているユーザーをフォローしているかどうか
-        following = Follower.objects.filter(
-            followed_by__user_name=user_name_logged_in_session, user=profile_user
+        following = User.objects.filter(
+            follower__user_name=user_name_logged_in_session, followee=profile_user
         ).exists()
 
         # セッションがない or セッションとプロフィールのユーザーが同じとき
