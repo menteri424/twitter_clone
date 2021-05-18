@@ -1,5 +1,4 @@
 import pytest
-import requests
 import user.tests.factories as factories
 import user.models as models
 
