@@ -49,17 +49,16 @@ class IndexView(generic.TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # TODO: シンプルにsession_user_nameでいいかも。あとはmiddlewareでrequestにsession_userを設定するとよいかも。
-        user_name_logged_in_session = self.request.session["USER_LOGGED_IN_SESSION"]
-        user_logged_in_session = User.objects.filter(user_name=user_name_logged_in_session).get()
+        session_user = self.request.session_user
 
-        followers = user_logged_in_session.followers.all()
+        followers = session_user.followers.all()
 
         tweets = Tweet.objects.filter(
-            Q(user__in=followers) | Q(user__user_name=user_name_logged_in_session)
+            Q(user__in=followers) | Q(user=session_user)
         ).order_by("-id")
 
         context["tweets"] = tweets
-        context["user_name"] = user_name_logged_in_session
+        context["session_user"] = session_user
 
         return context
 
@@ -82,10 +81,9 @@ class TweetView(generic.View):
 
     def post(self, request, *args, **kwargs):
         # formがないため、空で投稿できてしまう
-        user_name_logged_in_session = request.session["USER_LOGGED_IN_SESSION"]
         content = request.POST.get("content")
-        user = User.objects.filter(user_name=user_name_logged_in_session).get()
-        Tweet.objects.create(user=user, content=content)
+        session_user = request.session_user
+        Tweet.objects.create(user=session_user, content=content)
         return redirect(reverse("index"))
 
 
@@ -93,22 +91,20 @@ class ProfileView(generic.base.ContextMixin, generic.View):
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
 
-        user_name_logged_in_session = self.request.session.get("USER_LOGGED_IN_SESSION")
-        user_logged_in_session = User.objects.filter(user_name=user_name_logged_in_session).get()
-        has_user_name_session = bool(user_name_logged_in_session)
+        session_user = self.request.session_user
 
         profile_user_name = kwargs["user_name"]
         profile_user = User.objects.filter(user_name=profile_user_name).get()
-        
+
         tweets = Tweet.objects.filter(user=profile_user)
 
         # プロフィールのユーザーをフォローしているかどうか
-        is_following = user_logged_in_session.is_following(profile_user)
+        is_following = session_user.is_following(profile_user)
 
         # セッションがない or セッションとプロフィールのユーザーが同じとき
         # TODO: disableはHTMLの属性にも存在してややこしいので修正する
         disable_follow_botton = (
-            not has_user_name_session or user_logged_in_session == profile_user_name
+            not session_user or session_user == profile_user
         )
 
         context["is_following"] = is_following

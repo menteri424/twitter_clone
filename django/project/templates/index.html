@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>ようこそ{{ user_name }}さん</h1>
+<h1>ようこそ{{ session_user.user_name }}さん</h1>
 <p>ツイートする</p>
 <form action="{% url 'tweet' %}" method="POST">
     {% csrf_token %}

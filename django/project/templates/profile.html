@@ -15,9 +15,11 @@
     </form>
 </div>
 <div>
-    <p>{{ profile_user.profile }}</p>
-    <a href="{{ profile_user.url }}">URL</a>
-    <p>{{ profile_user.birth_date }}</p>
+    <p>{{ profile_user.profile | default:"" }}</p>
+    {% if profile_user.url %}
+        <a href="{{ profile_user.url }}">URL</a>
+    {% endif %}
+    <p>{{ profile_user.birth_date | default:"" }}</p>
 </div>
 <div>
     <p>ツイート一覧</p>
