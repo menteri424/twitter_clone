@@ -32,16 +32,15 @@ class User(models.Model):
             return False
         user.followers.add(self)
         return True
-    
+
     def try_unfollow(self, user):
         if not self.is_following(user):
             return False
-        user.followers.filter(id=self.id).delete()
+        user.followers.remove(self)
         return True
 
     def is_following(self, user):
         if user.followers.filter(id=self.id).exists():
             return True
         return False
-    
-    
+

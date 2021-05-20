@@ -51,10 +51,10 @@ class IndexView(generic.TemplateView):
         # TODO: シンプルにsession_user_nameでいいかも。あとはmiddlewareでrequestにsession_userを設定するとよいかも。
         session_user = self.request.session_user
 
-        followers = session_user.followers.all()
+        following = User.objects.filter(followers__in=[session_user]).all()
 
         tweets = Tweet.objects.filter(
-            Q(user__in=followers) | Q(user=session_user)
+            Q(user__in=following) | Q(user=session_user)
         ).order_by("-id")
 
         context["tweets"] = tweets
@@ -122,10 +122,23 @@ class ProfileView(generic.base.ContextMixin, generic.View):
 @decorators.login_required
 class FollowingManageView(generic.View):
     def post(self, request, *args, **kwargs):
+        session_user = request.session_user
+
+        profile_user_name = self.request.POST.get("profile_user_name")
+        profile_user = User.objects.filter(user_name=profile_user_name).get()
+
+        if not session_user or not profile_user:
+            return redirect(reverse("index"))
+
+        kwargs = {"user_name": profile_user_name}
+
         if request.path == reverse("follow"):
-            print("asd")
-        elif request.path == reverse("unfollow"):
-            print("aaaaaa")
-        else:
-            # あり得ない想定だが、念のため制御しておく
-            return HttpResponseBadRequest("不正なリクエストです。")
+            session_user.try_follow(profile_user)
+            return redirect(reverse("profile", kwargs=kwargs))
+
+        if request.path == reverse("unfollow"):
+            session_user.try_unfollow(profile_user)
+            return redirect(reverse("profile", kwargs=kwargs))
+
+        # あり得ない想定だが、念のため制御しておく
+        return HttpResponseBadRequest("不正なリクエストです。")

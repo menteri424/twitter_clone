@@ -33,7 +33,7 @@ class TestUser:
         factories.UserFactory(user_name="user1", password="112233")
 
         assert models.User.can_login(user_name, password) == expected
-    
+
     @pytest.mark.parametrize("already_exsists", [True, False])
     def test_try_follow(self, already_exsists):
         followee = factories.UserFactory(user_name="followee")

@@ -5,6 +5,7 @@
 <div>
     <form method="POST">
         {% csrf_token %}
+        <input type=hidden name="profile_user_name" value="{{ profile_user.user_name }}" />
         {% if not disable_follow_botton %}
             {% if is_following %}
                 <button type="submit" formaction="{% url 'unfollow' %}">フォローをやめる</button>
@@ -21,21 +22,6 @@
     {% endif %}
     <p>{{ profile_user.birth_date | default:"" }}</p>
 </div>
-<div>
-    <p>ツイート一覧</p>
-    <table border="1">
-        <tr>
-            <th>user</th>
-            <th>content</th>
-            <th>created_at</th>
-        </tr>
-        {% for tweet in tweets %}
-            <tr>
-                <td>{{ tweet.user.user_name }}</td>
-                <td>{{ tweet.content }}</td>
-                <td>{{ tweet.created_at }}</td>
-            </tr>
-        {% endfor %}
-    </table>
-</div>
+{% include 'component/time-line.html' %}
+
 {% endblock %}

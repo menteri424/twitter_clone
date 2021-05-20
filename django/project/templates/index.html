@@ -8,19 +8,6 @@
     <input type="text" name="content">
     <input type="submit">
 </form>
-<p>ツイート一覧</p>
-<table border="1">
-    <tr>
-        <th>user</th>
-        <th>content</th>
-        <th>created_at</th>
-    </tr>
-    {% for tweet in tweets %}
-        <tr>
-            <td>{{ tweet.user.user_name }}</td>
-            <td>{{ tweet.content }}</td>
-            <td>{{ tweet.created_at }}</td>
-        </tr>
-    {% endfor %}
-</table>
+{% include 'component/time-line.html' %}
+
 {% endblock %}
