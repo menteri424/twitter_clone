@@ -59,9 +59,15 @@
                 <a href="{% url 'register' %}">
                     <button type="button">登録</button>
                 </a>
-                <a href="{% url 'login' %}">
-                    <button type="button">ログイン</button>
+                {% if not session_user %}
+                    <a href="{% url 'login' %}">
+                        <button type="button">ログイン</button>
                 </a>
+                {% else %}
+                    <a href="{% url 'logout' %}">
+                        <button type="button">ログアウト</button>
+                </a>
+                {% endif %}
             </div>
         </header>
         <main>

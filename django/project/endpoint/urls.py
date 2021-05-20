@@ -6,6 +6,7 @@ import endpoint.views as views
 urlpatterns = [
     path("", views.IndexView.as_view(), name="index"),
     path("login/", views.login, name="login"),
+    path("logout/", views.LogoutView.as_view(), name="logout"),
     path("register/", views.RegisterView.as_view(), name="register"),
     path("tweet/", views.TweetView.as_view(), name="tweet"),
     path("follow/", views.FollowingManageView.as_view(), name="follow"),

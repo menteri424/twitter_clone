@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 
 @pytest.mark.django_db
-class TestLogin:
+class TestLoginView:
     def test_it(self, web_app):
         factories.UserFactory(user_name="user1", password="123123")
 
@@ -53,7 +53,32 @@ class TestLogin:
 
 
 @pytest.mark.django_db
-class TestIndex:
+class TestLogoutView:
+    def test_it(self, web_app):
+        factories.UserFactory(user_name="user1", password="123123")
+
+        res = web_app.get(reverse("login"))
+
+        form = res.form
+        form["user_name"] = "user1"
+        form["password"] = "123123"
+
+        res = form.submit()
+
+        res = web_app.get(reverse("logout"))
+
+        # リダイレクトしていること
+        assert res.status_code == 302
+
+        # リダイレクト先がloginページであること
+        assert res.url == reverse("login")
+
+        # セッションが削除されていること
+        assert "USER_LOGGED_IN_SESSION" not in res.client.session.keys()
+
+
+@pytest.mark.django_db
+class TestIndexView:
     def test_without_login(self, web_app):
         res = web_app.get(reverse("index"))
 
