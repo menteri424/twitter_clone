@@ -6,7 +6,7 @@ class SessionUserHandlingMiddleware(object):
         self.get_response = get_response
 
     def __call__(self, request):
-        if hasattr(request, "session"):        
+        if hasattr(request, "session"):
             user_loged_in_session = request.session["USER_LOGGED_IN_SESSION"]
             session_user = User.objects.filter(user_name=user_loged_in_session).first()
             request.session_user = session_user
