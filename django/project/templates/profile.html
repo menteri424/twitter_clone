@@ -3,12 +3,13 @@
 {% block content %}
 
 <div>
-    <form>
+    <form method="POST">
+        {% csrf_token %}
         {% if not disable_follow_botton %}
-            {% if following %}
-                <input type="submit" value="フォローをやめる">
+            {% if is_following %}
+                <button type="submit" formaction="{% url 'unfollow' %}">フォローをやめる</button>
             {% else %}
-                <input type="submit" value="フォローする">
+                <button type="submit" formaction="{% url 'follow' %}">フォローする</button>
             {% endif %}
         {% endif %}
     </form>
@@ -19,19 +20,20 @@
     <p>{{ profile_user.birth_date }}</p>
 </div>
 <div>
+    <p>ツイート一覧</p>
     <table border="1">
-        <p>ツイート一覧</p>
+        <tr>
+            <th>user</th>
+            <th>content</th>
+            <th>created_at</th>
+        </tr>
+        {% for tweet in tweets %}
             <tr>
-                <th>user</th>
-                <th>content</th>
-                <th>created_at</th>
+                <td>{{ tweet.user.user_name }}</td>
+                <td>{{ tweet.content }}</td>
+                <td>{{ tweet.created_at }}</td>
             </tr>
-            {% for tweet in tweets %}
-                <tr>
-                    <td>{{ tweet.user.user_name }}</td>
-                    <td>{{ tweet.content }}</td>
-                    <td>{{ tweet.created_at }}</td>
-                </tr>
-            {% endfor %}
+        {% endfor %}
+    </table>
 </div>
 {% endblock %}

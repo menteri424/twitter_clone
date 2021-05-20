@@ -2,7 +2,7 @@ FROM python:3
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        postgresql-client \
+        postgresql-client sqlite3 \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt /tmp

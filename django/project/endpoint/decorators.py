@@ -39,9 +39,9 @@ def login_required(obj):
 
 
 def _authentication(request):
-    is_valid = False
+    is_valid_user_name = False
     if "USER_LOGGED_IN_SESSION" in request.session.keys():
         user_name = request.session["USER_LOGGED_IN_SESSION"]
-        is_valid = User.is_valid(user_name)
-    if not is_valid:
+        is_valid_user_name = User.is_valid_user_name(user_name)
+    if not is_valid_user_name:
         return redirect(reverse("login"))
