@@ -1,13 +1,15 @@
+from django.views.generic.list import ListView
 import endpoint.forms as forms
 import endpoint.decorators as decorators
 import django.views.generic as generic
 
-from django.http import request, HttpResponseNotAllowed
+from django.http import request, HttpResponseNotAllowed, HttpResponseBadRequest
 from django.shortcuts import render, redirect
 from django.urls import reverse, reverse_lazy
 from django.db.models import Prefetch, Q
-from user.models import User, UserFollowingRelation
+from user.models import User
 from tweet.models import Tweet
+
 
 def login(request):
     if request.method == "GET":
@@ -17,6 +19,7 @@ def login(request):
         form = forms.LoginForm(request.POST)
 
         if not form.is_valid():
+            # TODO エラー画面ができていないので後々作成する。
             return render(request, "login.html", {"type": "NG"})
 
         user_name = form.cleaned_data["user_name"]
@@ -25,6 +28,7 @@ def login(request):
         succeed = User.can_login(user_name=user_name, password=password)
 
         if not succeed:
+            # TODO エラー画面ができていないので後々作成する。
             return render(request, "login.html", {"type": "NG"})
 
         request.session["USER_LOGGED_IN_SESSION"] = user_name
@@ -33,6 +37,7 @@ def login(request):
 
 
 def logout(request):
+    # セッションを消すだけでOK
     return render(request, "test.html")
 
 
@@ -43,15 +48,17 @@ class IndexView(generic.TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        user_name = self.request.session["USER_LOGGED_IN_SESSION"]
+        # TODO: シンプルにsession_user_nameでいいかも。あとはmiddlewareでrequestにsession_userを設定するとよいかも。
+        session_user = self.request.session_user
 
-        follower = UserFollowingRelation.objects.filter(followee__user_name=user_name).values_list(
-            "followed_by"
-        )
-        tweets = Tweet.objects.filter(Q(user__in=follower) | Q(user__user_name=user_name))
+        following = User.objects.filter(followers__in=[session_user]).all()
+
+        tweets = Tweet.objects.filter(
+            Q(user__in=following) | Q(user=session_user)
+        ).order_by("-id")
 
         context["tweets"] = tweets
-        context["user_name"] = user_name
+        context["session_user"] = session_user
 
         return context
 
@@ -59,6 +66,7 @@ class IndexView(generic.TemplateView):
         return super().get(request, **kwargs)
 
 
+# TODO 入力が不正だった場合にエラーメッセージが現在表示されていない。
 class RegisterView(generic.CreateView):
     model = User
     form_class = forms.RegisterForm
@@ -68,14 +76,69 @@ class RegisterView(generic.CreateView):
 
 @decorators.login_required
 class TweetView(generic.View):
-    def get(self, request, **kwargs):
+    def get(self, request, *args, **kwargs):
         return HttpResponseNotAllowed("ページの遷移が不正です。")
 
-    def post(self, request, **kwargs):
-        user_name = request.session["USER_LOGGED_IN_SESSION"]
+    def post(self, request, *args, **kwargs):
+        # formがないため、空で投稿できてしまう
         content = request.POST.get("content")
-        user = User.objects.filter(user_name=user_name).get()
-        Tweet.objects.create(user=user, content=content)
+        session_user = request.session_user
+        Tweet.objects.create(user=session_user, content=content)
         return redirect(reverse("index"))
 
-#TODO 他人のプロフィール表示,セッションの有無でフォローボタンを押したときにloginさせる
+
+class ProfileView(generic.base.ContextMixin, generic.View):
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+
+        session_user = self.request.session_user
+
+        profile_user_name = kwargs["user_name"]
+        profile_user = User.objects.filter(user_name=profile_user_name).get()
+
+        tweets = Tweet.objects.filter(user=profile_user)
+
+        # プロフィールのユーザーをフォローしているかどうか
+        is_following = session_user.is_following(profile_user)
+
+        # セッションがない or セッションとプロフィールのユーザーが同じとき
+        # TODO: disableはHTMLの属性にも存在してややこしいので修正する
+        disable_follow_botton = (
+            not session_user or session_user == profile_user
+        )
+
+        context["is_following"] = is_following
+        context["disable_follow_botton"] = disable_follow_botton
+        context["profile_user"] = profile_user
+        context["tweets"] = tweets
+
+        return context
+
+    def get(self, request, *args, **kwargs):
+        context = self.get_context_data(**kwargs)
+        return render(request, "profile.html", context)
+
+
+@decorators.login_required
+class FollowingManageView(generic.View):
+    def post(self, request, *args, **kwargs):
+        session_user = request.session_user
+
+        profile_user_name = self.request.POST.get("profile_user_name")
+        profile_user = User.objects.filter(user_name=profile_user_name).get()
+
+        if not session_user or not profile_user:
+            return redirect(reverse("index"))
+
+        kwargs = {"user_name": profile_user_name}
+
+        if request.path == reverse("follow"):
+            session_user.try_follow(profile_user)
+            return redirect(reverse("profile", kwargs=kwargs))
+
+        if request.path == reverse("unfollow"):
+            session_user.try_unfollow(profile_user)
+            return redirect(reverse("profile", kwargs=kwargs))
+
+        # あり得ない想定だが、念のため制御しておく
+        return HttpResponseBadRequest("不正なリクエストです。")

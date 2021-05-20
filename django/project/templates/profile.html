@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div>
+    <form method="POST">
+        {% csrf_token %}
+        <input type=hidden name="profile_user_name" value="{{ profile_user.user_name }}" />
+        {% if not disable_follow_botton %}
+            {% if is_following %}
+                <button type="submit" formaction="{% url 'unfollow' %}">フォローをやめる</button>
+            {% else %}
+                <button type="submit" formaction="{% url 'follow' %}">フォローする</button>
+            {% endif %}
+        {% endif %}
+    </form>
+</div>
+<div>
+    <p>{{ profile_user.profile | default:"" }}</p>
+    {% if profile_user.url %}
+        <a href="{{ profile_user.url }}">URL</a>
+    {% endif %}
+    <p>{{ profile_user.birth_date | default:"" }}</p>
+</div>
+{% include 'component/time-line.html' %}
+
+{% endblock %}
