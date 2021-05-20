@@ -11,6 +11,13 @@ from user.models import User
 from tweet.models import Tweet
 
 
+class SessionUserMixin(generic.base.ContextMixin):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["session_user"] = self.request.session_user
+        return context
+
+
 def login(request):
     if request.method == "GET":
         form = forms.LoginForm()
@@ -36,13 +43,14 @@ def login(request):
         return redirect(reverse("index"))
 
 
-def logout(request):
-    # セッションを消すだけでOK
-    return render(request, "test.html")
+class LogoutView(generic.View, SessionUserMixin):
+    def get(self, request, *args, **kwargs):
+        request.session.flush()
+        return redirect(reverse("login"))
 
 
 @decorators.login_required
-class IndexView(generic.TemplateView):
+class IndexView(generic.TemplateView, SessionUserMixin):
     template_name = "index.html"
     methods = ["GET"]
 
@@ -58,7 +66,6 @@ class IndexView(generic.TemplateView):
         ).order_by("-id")
 
         context["tweets"] = tweets
-        context["session_user"] = session_user
 
         return context
 
@@ -67,7 +74,7 @@ class IndexView(generic.TemplateView):
 
 
 # TODO 入力が不正だった場合にエラーメッセージが現在表示されていない。
-class RegisterView(generic.CreateView):
+class RegisterView(generic.CreateView, SessionUserMixin):
     model = User
     form_class = forms.RegisterForm
     template_name = "register.html"
@@ -75,7 +82,7 @@ class RegisterView(generic.CreateView):
 
 
 @decorators.login_required
-class TweetView(generic.View):
+class TweetView(generic.View, SessionUserMixin):
     def get(self, request, *args, **kwargs):
         return HttpResponseNotAllowed("ページの遷移が不正です。")
 
@@ -87,7 +94,7 @@ class TweetView(generic.View):
         return redirect(reverse("index"))
 
 
-class ProfileView(generic.base.ContextMixin, generic.View):
+class ProfileView(SessionUserMixin, generic.base.ContextMixin, generic.View):
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
 
@@ -120,7 +127,7 @@ class ProfileView(generic.base.ContextMixin, generic.View):
 
 
 @decorators.login_required
-class FollowingManageView(generic.View):
+class FollowingManageView(generic.View, SessionUserMixin):
     def post(self, request, *args, **kwargs):
         session_user = request.session_user
 
